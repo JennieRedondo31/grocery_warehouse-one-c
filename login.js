@@ -1,4 +1,4 @@
-const baseApiUrl = "api.php";
+const baseApiUrl = "https://grocerywarehouse.site.je/api.php";
 
 /* ============================================================
    ROLE ROUTING
