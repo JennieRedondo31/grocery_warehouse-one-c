@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Releasing Dashboard — Grocery Warehouse Management System</title>
 <link rel="stylesheet" href="releasing.css">
+<link rel="stylesheet" href="mobile.css?v=3">
 </head>
 <body>
 
@@ -136,26 +137,10 @@
 
         <main class="content">
 
-            <!-- DASHBOARD -->
+            <!-- ================= DASHBOARD ================= -->
             <section id="dashboard-section" class="page-section active-section">
 
                 <div class="stat-grid">
-
-                    <div class="stat-card stat-card-toprocess clickable-card"
-                         role="button" tabindex="0" title="View releases to process"
-                         onclick="goToSection('releases-section')"
-                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goToSection('releases-section');}">
-                        <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-label">Releases To Process</span>
-                            <span class="stat-value" id="stat-toprocess">0</span>
-                        </div>
-                    </div>
 
                     <div class="stat-card stat-card-completed clickable-card"
                          role="button" tabindex="0" title="View completed releases"
@@ -269,7 +254,7 @@
 
             </section>
 
-            <!-- STOCK RELEASES -->
+            <!-- ================= STOCK RELEASES ================= -->
             <section id="releases-section" class="page-section">
 
                 <div class="filter-bar">
@@ -316,151 +301,167 @@
                 </table>
 
             </section>
-<!-- PRODUCTS -->
-<section id="product-section" class="page-section">
-    <div class="filter-bar">
-        <div class="filter-field">
-            <label for="search-product">Search</label>
-            <input type="text" id="search-product" placeholder="Name, barcode or category">
-        </div>
-        <div class="filter-field">
-            <label for="filter-product-category">Category</label>
-            <select id="filter-product-category"><option value="">All categories</option></select>
-        </div>
-        <div class="filter-actions">
-            <button class="btn btn-outline" onclick="clearProductFilters()">Clear</button>
-        </div>
-    </div>
-    <div class="filter-count" id="product-count"></div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Barcode</th><th>Product</th><th>Category</th><th>Unit</th>
-                <th class="num">On Hand</th><th class="num">Min Stock</th><th>Location</th>
-            </tr>
-        </thead>
-        <tbody id="product-tbody">
-            <tr><td colspan="7" class="empty-row">Loading…</td></tr>
-        </tbody>
-    </table>
-</section>
 
-          <!-- CURRENT STOCK -->
-<section id="stock-section" class="page-section">
-    <div class="filter-bar">
-        <div class="filter-field">
-            <label for="search-stock">Search</label>
-            <input type="text" id="search-stock" placeholder="Product, barcode or category">
-        </div>
-        <div class="filter-field">
-            <label for="filter-stock-category">Category</label>
-            <select id="filter-stock-category"><option value="">All categories</option></select>
-        </div>
-        <div class="filter-actions">
-            <button class="btn btn-outline" onclick="clearStockFilters()">Clear</button>
-        </div>
-    </div>
-    <div class="filter-count" id="stock-count"></div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Product</th><th>Category</th><th>Location</th><th>Unit</th>
-                <th class="num">On Hand</th><th class="num">Min Stock</th>
-            </tr>
-        </thead>
-        <tbody id="stock-tbody">
-            <tr><td colspan="6" class="empty-row">Loading…</td></tr>
-        </tbody>
-    </table>
-</section>
-<!-- LOCATIONS -->
-<section id="locations-section" class="page-section">
+            <!-- ================= PRODUCTS ================= -->
+            <section id="product-section" class="page-section">
+                <div class="filter-bar">
+                    <div class="filter-field">
+                        <label for="search-product">Search</label>
+                        <input type="text" id="search-product" placeholder="Name, barcode or category">
+                    </div>
+                    <div class="filter-field">
+                        <label for="filter-product-category">Category</label>
+                        <select id="filter-product-category"><option value="">All categories</option></select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-outline" onclick="clearProductFilters()">Clear</button>
+                    </div>
+                </div>
+                <div class="filter-count" id="product-count"></div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Barcode</th><th>Product</th><th>Category</th><th>Unit</th>
+                            <th class="num">On Hand</th><th class="num">Min Stock</th><th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-tbody">
+                        <tr><td colspan="7" class="empty-row">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </section>
 
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="aisles-panel">Aisles</button>
-        <button class="tab-btn" data-tab="shelves-panel">Shelves</button>
-        <button class="tab-btn" data-tab="bins-panel">Bins</button>
-    </div>
+            <!-- ================= CURRENT STOCK ================= -->
+            <section id="stock-section" class="page-section">
+                <div class="filter-bar">
+                    <div class="filter-field">
+                        <label for="search-stock">Search</label>
+                        <input type="text" id="search-stock" placeholder="Product, barcode or category">
+                    </div>
+                    <div class="filter-field">
+                        <label for="filter-stock-category">Category</label>
+                        <select id="filter-stock-category"><option value="">All categories</option></select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-outline" onclick="clearStockFilters()">Clear</button>
+                    </div>
+                </div>
+                <div class="filter-count" id="stock-count"></div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th><th>Category</th><th>Location</th><th>Unit</th>
+                            <th class="num">On Hand</th><th class="num">Min Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody">
+                        <tr><td colspan="6" class="empty-row">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </section>
 
-    <!-- AISLES TAB -->
-    <div class="tab-panel active-tab" id="aisles-panel">
-        <div class="filter-bar">
-            <div class="filter-field">
-                <label for="search-aisle">Search</label>
-                <input type="text" id="search-aisle" placeholder="Aisle code">
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline" onclick="clearStorageFilters('aisle')">Clear</button>
-            </div>
-        </div>
-        <div class="filter-count" id="aisle-count"></div>
-        <table class="data-table">
-            <thead>
-                <tr><th>AISLE CODE</th></tr>
-            </thead>
-            <tbody id="aisles-tbody">
-                <tr><td class="empty-row">Loading…</td></tr>
-            </tbody>
-        </table>
-    </div>
+            <!-- ================= LOCATIONS ================= -->
+            <section id="locations-section" class="page-section">
 
-    <!-- SHELVES TAB -->
-    <div class="tab-panel" id="shelves-panel">
-        <div class="filter-bar">
-            <div class="filter-field">
-                <label for="search-shelf">Search</label>
-                <input type="text" id="search-shelf" placeholder="Shelf code">
-            </div>
-            <div class="filter-field">
-                <label for="filter-shelf-aisle">Aisle</label>
-                <select id="filter-shelf-aisle"><option value="">All aisles</option></select>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline" onclick="clearStorageFilters('shelf')">Clear</button>
-            </div>
-        </div>
-        <div class="filter-count" id="shelf-count"></div>
-        <table class="data-table">
-            <thead>
-                <tr><th>AISLE</th><th>SHELF CODE</th></tr>
-            </thead>
-            <tbody id="shelves-tbody">
-                <tr><td colspan="2" class="empty-row">Loading…</td></tr>
-            </tbody>
-        </table>
-    </div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="aisles-panel">Aisles</button>
+                    <button class="tab-btn" data-tab="shelves-panel">Shelves</button>
+                    <button class="tab-btn" data-tab="bins-panel">Bins</button>
+                </div>
 
-    <!-- BINS TAB -->
-    <div class="tab-panel" id="bins-panel">
-        <div class="filter-bar">
-            <div class="filter-field">
-                <label for="search-bin">Search</label>
-                <input type="text" id="search-bin" placeholder="Bin code">
-            </div>
-            <div class="filter-field">
-                <label for="filter-bin-aisle">Aisle</label>
-                <select id="filter-bin-aisle"><option value="">All aisles</option></select>
-            </div>
-            <div class="filter-field">
-                <label for="filter-bin-shelf">Shelf</label>
-                <select id="filter-bin-shelf"><option value="">All shelves</option></select>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline" onclick="clearStorageFilters('bin')">Clear</button>
-            </div>
-        </div>
-        <div class="filter-count" id="bin-count"></div>
-        <table class="data-table">
-            <thead>
-                <tr><th>AISLE</th><th>SHELF</th><th>BIN CODE</th></tr>
-            </thead>
-            <tbody id="bins-tbody">
-                <tr><td colspan="3" class="empty-row">Loading…</td></tr>
-            </tbody>
-        </table>
-    </div>
+                <!-- AISLES TAB -->
+                <div class="tab-panel active-tab" id="aisles-panel">
+                    <div class="filter-bar">
+                        <div class="filter-field">
+                            <label for="search-aisle">Search</label>
+                            <input type="text" id="search-aisle" placeholder="Aisle code">
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-outline" onclick="clearStorageFilters('aisle')">Clear</button>
+                        </div>
+                    </div>
+                    <div class="filter-count" id="aisle-count"></div>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>AISLE CODE</th></tr>
+                        </thead>
+                        <tbody id="aisles-tbody">
+                            <tr><td class="empty-row">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
-</section>
+                <!-- SHELVES TAB -->
+                <div class="tab-panel" id="shelves-panel">
+                    <div class="filter-bar">
+                        <div class="filter-field">
+                            <label for="search-shelf">Search</label>
+                            <input type="text" id="search-shelf" placeholder="Shelf code">
+                        </div>
+                        <div class="filter-field">
+                            <label for="filter-shelf-aisle">Aisle</label>
+                            <select id="filter-shelf-aisle"><option value="">All aisles</option></select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-outline" onclick="clearStorageFilters('shelf')">Clear</button>
+                        </div>
+                    </div>
+                    <div class="filter-count" id="shelf-count"></div>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>AISLE</th><th>SHELF CODE</th></tr>
+                        </thead>
+                        <tbody id="shelves-tbody">
+                            <tr><td colspan="2" class="empty-row">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BINS TAB -->
+                <div class="tab-panel" id="bins-panel">
+                    <div class="filter-bar">
+                        <div class="filter-field">
+                            <label for="search-bin">Search</label>
+                            <input type="text" id="search-bin" placeholder="Bin code">
+                        </div>
+                        <div class="filter-field">
+                            <label for="filter-bin-aisle">Aisle</label>
+                            <select id="filter-bin-aisle"><option value="">All aisles</option></select>
+                        </div>
+                        <div class="filter-field">
+                            <label for="filter-bin-shelf">Shelf</label>
+                            <select id="filter-bin-shelf"><option value="">All shelves</option></select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-outline" onclick="clearStorageFilters('bin')">Clear</button>
+                        </div>
+                    </div>
+                    <div class="filter-count" id="bin-count"></div>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>AISLE</th><th>SHELF</th><th>BIN CODE</th></tr>
+                        </thead>
+                        <tbody id="bins-tbody">
+                            <tr><td colspan="3" class="empty-row">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+    <!-- /.main-area -->
+
+</div>
+<!-- /.app-shell -->
+
+
+<!-- ============================================================
+     GAWAS NA SA .main-area ANG BACKDROP UG TANAN MODAL
+     (aron dili sila ma-trap sa z-index sa .main-area)
+============================================================ -->
 <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
 <!-- ================= NEW STOCK RELEASE MODAL ================= -->
@@ -513,7 +514,7 @@
     </div>
 </div>
 
-<!-- PROCESS RELEASE MODAL -->
+<!-- ================= PROCESS RELEASE MODAL ================= -->
 <div id="process-modal-overlay" class="modal-overlay">
     <div class="modal-box release-modal-box">
         <div class="modal-header">
@@ -529,7 +530,7 @@
     </div>
 </div>
 
-<!-- VIEW RELEASE MODAL -->
+<!-- ================= VIEW RELEASE MODAL ================= -->
 <div id="view-release-modal-overlay" class="modal-overlay">
     <div class="modal-box wide-modal-box">
         <div class="modal-header">
@@ -539,12 +540,13 @@
         <div class="modal-body" id="view-release-modal-body">Loading…</div>
         <div class="modal-footer">
             <button class="btn btn-outline" onclick="closeViewReleaseModal()">Close</button>
+            <button class="btn btn-primary" id="btn-print-view" style="display:none;" onclick="printRelease(viewReleaseId)">Print</button>
         </div>
     </div>
 </div>
 
-<!-- CONFIRM MODAL -->
-<div id="confirm-modal-overlay" class="modal-overlay">
+<!-- ================= CONFIRM MODAL ================= -->
+<div id="confirm-modal-overlay" class="modal-overlay" style="z-index:200;">
     <div class="modal-box confirm-modal-box">
         <div class="modal-header">
             <h3 id="confirm-modal-title">Confirm Action</h3>
@@ -561,7 +563,7 @@
     </div>
 </div>
 
-<!-- MESSAGE MODAL -->
+<!-- ================= MESSAGE MODAL ================= -->
 <div id="alert-modal-overlay" class="msgm-overlay">
 
     <div class="msgm-box" role="alertdialog" aria-modal="true"
@@ -588,5 +590,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="releasing.js"></script>
+<script src="mobile.js?v=3"></script>
 </body>
 </html>
