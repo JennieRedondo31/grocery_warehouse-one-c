@@ -1162,7 +1162,7 @@ try {
     }
 
     /* ============================================================
-       PRODUCTS (WITH COSTPRICE)
+       PRODUCTS (WITH COSTPRICE + MIN/MAX STOCK)
     ============================================================ */
 
     if ($operation === "getProducts") {
@@ -1174,7 +1174,7 @@ try {
                 p.ProductID, p.Barcode, p.ProductName, p.Description,
                 p.UnitOfMeasureID, u.UnitName, u.UnitSymbol,
                 p.CostPrice,
-                p.MinStockLevel, p.CreatedAt,
+                p.MinStockLevel, p.MaxStockLevel, p.CreatedAt,
                 p.BinID, b.BinCode, s.ShelfCode, a.AisleCode,
                 p.CategoryID, c.CategoryName, p.IsArchived
             FROM product p
@@ -1222,6 +1222,7 @@ try {
         $uom         = intval($input["UnitOfMeasureID"] ?? 0);
         $costPrice   = floatval($input["CostPrice"] ?? 0);
         $minStock    = intval($input["MinStockLevel"] ?? 0);
+        $maxStock    = intval($input["MaxStockLevel"] ?? 0);
         $binID       = intval($input["BinID"] ?? 0);
         $categoryID  = intval($input["CategoryID"] ?? 0);
 
@@ -1229,6 +1230,14 @@ try {
 
         if ($costPrice < 0) {
             response(false, "Cost price cannot be negative.", null);
+        }
+
+        if ($minStock < 0 || $maxStock < 0) {
+            response(false, "Stock levels cannot be negative.", null);
+        }
+        if ($maxStock === 0 && $minStock > 0) $maxStock = $minStock * 3;
+        if ($maxStock > 0 && $maxStock < $minStock) {
+            response(false, "Maximum stock level cannot be lower than the minimum.", null);
         }
 
         if (isDuplicate($conn, "product", "ProductName", $productName)) {
@@ -1241,10 +1250,10 @@ try {
 
         $conn->prepare("
             INSERT INTO product
-            (Barcode, ProductName, Description, UnitOfMeasureID, CostPrice, MinStockLevel,
+            (Barcode, ProductName, Description, UnitOfMeasureID, CostPrice, MinStockLevel, MaxStockLevel,
              CreatedAt, BinID, CategoryID, IsArchived)
             VALUES
-            (:barcode, :productname, :description, :uom, :costprice, :minstock,
+            (:barcode, :productname, :description, :uom, :costprice, :minstock, :maxstock,
              NOW(), :bin, :category, 'No')
         ")->execute([
             ":barcode"     => $barcode,
@@ -1253,6 +1262,7 @@ try {
             ":uom"         => $uom > 0 ? $uom : null,
             ":costprice"   => $costPrice,
             ":minstock"    => $minStock,
+            ":maxstock"    => $maxStock,
             ":bin"         => $binID > 0 ? $binID : null,
             ":category"    => $categoryID > 0 ? $categoryID : null
         ]);
@@ -1268,11 +1278,21 @@ try {
         $productName = trim($input["ProductName"] ?? "");
         $barcode     = trim($input["Barcode"] ?? "");
         $costPrice   = floatval($input["CostPrice"] ?? 0);
+        $minStock    = intval($input["MinStockLevel"] ?? 0);
+        $maxStock    = intval($input["MaxStockLevel"] ?? 0);
 
         if ($id <= 0 || $productName === "") response(false, "Invalid product information.", null);
 
         if ($costPrice < 0) {
             response(false, "Cost price cannot be negative.", null);
+        }
+
+        if ($minStock < 0 || $maxStock < 0) {
+            response(false, "Stock levels cannot be negative.", null);
+        }
+        if ($maxStock === 0 && $minStock > 0) $maxStock = $minStock * 3;
+        if ($maxStock > 0 && $maxStock < $minStock) {
+            response(false, "Maximum stock level cannot be lower than the minimum.", null);
         }
 
         if (isDuplicate($conn, "product", "ProductName", $productName, $id, "ProductID")) {
@@ -1290,7 +1310,8 @@ try {
             SET Barcode = :barcode, ProductName = :productname,
                 Description = :description, UnitOfMeasureID = :uom,
                 CostPrice = :costprice,
-                MinStockLevel = :minstock, BinID = :bin, CategoryID = :category
+                MinStockLevel = :minstock, MaxStockLevel = :maxstock,
+                BinID = :bin, CategoryID = :category
             WHERE ProductID = :id
         ")->execute([
             ":barcode"     => $barcode,
@@ -1298,7 +1319,8 @@ try {
             ":description" => trim($input["Description"] ?? ""),
             ":uom"         => intval($input["UnitOfMeasureID"] ?? 0) ?: null,
             ":costprice"   => $costPrice,
-            ":minstock"    => intval($input["MinStockLevel"] ?? 0),
+            ":minstock"    => $minStock,
+            ":maxstock"    => $maxStock,
             ":bin"         => intval($input["BinID"] ?? 0) ?: null,
             ":category"    => intval($input["CategoryID"] ?? 0) ?: null,
             ":id"          => $id
