@@ -7,6 +7,7 @@ let currentUser = null;
 let confirmCallback = null;
 let releaseProductsCache = [];
 let processReleaseId = null;
+let viewReleaseId = null;
 
 /* ============================================================
    SESSION
@@ -522,6 +523,10 @@ async function loadReleases() {
             actionBtn = `<button class="btn-icon" onclick="openViewReleaseModal(${r.ReleaseID})">View</button>`;
         }
 
+        if (status === "completed") {
+            actionBtn += `<button class="btn-icon" onclick="printRelease(${r.ReleaseID})">Print</button>`;
+        }
+
         return `
             <tr>
                 <td>#${esc(r.ReleaseID)}</td>
@@ -843,7 +848,7 @@ async function submitNewRelease() {
                 loadDashboard();
 
                 await showAlert(
-                    res.message || "Stock release submitted for manager approval.",
+                    res.message || "Stock release completed.",
                     { type: "success" }
                 );
             }
@@ -981,6 +986,7 @@ async function submitProcess(markCompleted) {
         return;
     }
 
+
     const res = await apiCall("processStockRelease", {
         ReleaseID: processReleaseId,
         ReleaseDate: releaseDate,
@@ -1019,9 +1025,15 @@ function markReleaseCompleted() {
 ============================================================ */
 
 async function openViewReleaseModal(releaseId) {
+    viewReleaseId = releaseId;
+
     document.getElementById("view-release-modal-title").textContent = `Stock Release #${releaseId}`;
     const body = document.getElementById("view-release-modal-body");
     body.innerHTML = `<p class="modal-loading">Loading…</p>`;
+
+    const printBtn = document.getElementById("btn-print-view");
+    if (printBtn) printBtn.style.display = "none";
+
     openModal("view-release-modal-overlay");
 
     const res = await apiCall("getStockRelease", { ReleaseID: releaseId });
@@ -1033,6 +1045,11 @@ async function openViewReleaseModal(releaseId) {
 
     const d = res.data;
     const lines = d.lines || [];
+
+    if (printBtn) {
+        printBtn.style.display =
+            String(d.StatusName || "").toLowerCase() === "completed" ? "" : "none";
+    }
 
     let grandTotal = 0;
 
@@ -1083,6 +1100,141 @@ async function openViewReleaseModal(releaseId) {
 
 function closeViewReleaseModal() {
     closeModal("view-release-modal-overlay");
+}
+
+/* ============================================================
+   PRINT RELEASE SLIP
+============================================================ */
+
+async function printRelease(releaseId) {
+    if (!releaseId) return;
+
+    const res = await apiCall("getStockRelease", { ReleaseID: releaseId });
+
+    if (!res || !res.success || !res.data) {
+        await showAlert((res && res.message) || "Failed to load release for printing.", { type: "error" });
+        return;
+    }
+
+    const d = res.data;
+    const lines = (d.lines || []).filter(l => Number(l.QuantityReleased || 0) > 0);
+
+    let grandTotal = 0;
+    let totalQty = 0;
+
+    const rowsHtml = lines.map((l, i) => {
+        const qty = Number(l.QuantityReleased || 0);
+        const price = Number(l.SellingPrice || 0);
+        const total = qty * price;
+        grandTotal += total;
+        totalQty += qty;
+
+        return `
+            <tr>
+                <td class="c">${i + 1}</td>
+                <td>${esc(l.ProductName)}</td>
+                <td class="c">${esc(l.UnitName || "—")}</td>
+                <td class="r">${esc(qty)}</td>
+                <td class="r">${money(price)}</td>
+                <td class="r">${money(total)}</td>
+            </tr>
+        `;
+    }).join("") || `<tr><td colspan="6" class="c">No items.</td></tr>`;
+
+    const printedAt = new Date().toLocaleString("en-PH");
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Release Slip #${esc(releaseId)}</title>
+<style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; margin: 0; }
+    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 14px; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .header h2 { margin: 4px 0 0; font-size: 14px; font-weight: normal; letter-spacing: 1px; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .meta div { line-height: 1.7; }
+    .meta b { display: inline-block; min-width: 90px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #000; padding: 6px 8px; }
+    th { background: #eee; font-size: 11px; text-transform: uppercase; }
+    td.c, th.c { text-align: center; }
+    td.r, th.r { text-align: right; }
+    tfoot td { font-weight: bold; background: #f7f7f7; }
+    .sign { display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; }
+    .sign div { flex: 1; text-align: center; }
+    .sign .line { border-top: 1px solid #000; padding-top: 4px; margin-top: 40px; }
+    .foot { margin-top: 30px; font-size: 10px; color: #555; text-align: center; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>Grocery Warehouse</h1>
+        <h2>STOCK RELEASE SLIP</h2>
+    </div>
+
+    <div class="meta">
+        <div>
+            <div><b>Release No.:</b> #${esc(releaseId)}</div>
+            <div><b>Release Date:</b> ${esc(d.ReleaseDate || "—")}</div>
+        </div>
+        <div>
+            <div><b>Released By:</b> ${esc(d.ReleasedBy || "—")}</div>
+            <div><b>Status:</b> ${esc(d.StatusName || "—")}</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="c" style="width:40px;">#</th>
+                <th>Product</th>
+                <th class="c" style="width:70px;">Unit</th>
+                <th class="r" style="width:70px;">Qty</th>
+                <th class="r" style="width:100px;">Price</th>
+                <th class="r" style="width:110px;">Total</th>
+            </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="r">TOTAL</td>
+                <td class="r">${esc(totalQty)}</td>
+                <td></td>
+                <td class="r">${money(grandTotal)}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="sign">
+        <div><div class="line">Released By</div></div>
+        <div><div class="line">Received By</div></div>
+    </div>
+
+    <div class="foot">Printed on ${esc(printedAt)}</div>
+</body>
+</html>`;
+
+    const old = document.getElementById("print-frame");
+    if (old) old.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "print-frame";
+    iframe.style.cssText = "position:fixed; right:0; bottom:0; width:0; height:0; border:0;";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }, 300);
 }
 
 /* ============================================================
@@ -1414,7 +1566,7 @@ function confirmLogout() {
         "Are you sure you want to log out?",
         {
             title: "Log Out",
-            warning: "",
+            warning: "You will need to sign in again to access the releasing panel.",
             confirmLabel: "Log Out",
             onConfirm: () => logout()
         }
