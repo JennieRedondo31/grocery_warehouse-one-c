@@ -296,7 +296,7 @@ try {
 
         $sql = "
             SELECT p.ProductID, p.Barcode, p.ProductName, p.Description,
-                   p.MinStockLevel, p.CostPrice,
+                   p.MinStockLevel, p.MaxStockLevel, p.CostPrice,
                    p.CategoryID,
                    c.CategoryName, u.UnitName, u.UnitSymbol, b.BinCode,
                    " . stockExpression() . " AS OnHand
@@ -333,7 +333,7 @@ try {
         if ($supplierID <= 0) response(false, "Select a supplier first.", null);
 
         $stmt = $conn->prepare("
-            SELECT p.ProductID, p.ProductName, p.Barcode, p.MinStockLevel, p.CostPrice,
+            SELECT p.ProductID, p.ProductName, p.Barcode, p.MinStockLevel,p.MaxStockLevel, p.CostPrice,
                    c.CategoryName, u.UnitSymbol,
                    " . stockExpression() . " AS OnHand
             FROM supplier_product sp
