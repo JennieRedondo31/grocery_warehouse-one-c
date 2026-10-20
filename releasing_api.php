@@ -559,7 +559,7 @@ try {
 
     /* ------------------------------------------------------------
        CREATE a stock release (done by releasing staff)
-       Saved as PENDING - QOH is deducted only after Manager approval
+       Saved as COMPLETED directly (no manager approval, no extra processing step).
        Saves SellingPrice (auto +20% from cost on frontend)
     ------------------------------------------------------------ */
     if ($operation === "createStockRelease") {
@@ -590,9 +590,9 @@ try {
             }
         }
 
-        // Save as PENDING
-        $pendingID = findStatusIDByName($conn, "pending");
-        if ($pendingID <= 0) response(false, "No 'Pending' status found. Ask the admin to add it.", null);
+        // Save as COMPLETED (manager approval no longer required)
+        $completedStatusID = findStatusIDByName($conn, "completed");
+        if ($completedStatusID <= 0) response(false, "No 'Completed' status found. Ask the admin to add it.", null);
 
         // Validate products + soft-check on-hand
         $chk = $conn->prepare("SELECT ProductName FROM product WHERE ProductID = :id AND IsArchived = 'No' LIMIT 1");
@@ -616,7 +616,7 @@ try {
             ")->execute([
                 ":rel"   => $currentUserID,
                 ":rdate" => $releaseDate,
-                ":s"     => $pendingID
+                ":s"     => $completedStatusID
             ]);
             $releaseID = intval($conn->lastInsertId());
 
@@ -639,9 +639,9 @@ try {
             response(false, "Failed to create stock release: " . $e->getMessage(), null);
         }
 
-        addAudit($conn, $currentUserID, "INSERT", "stock_release", "Created stock release #$releaseID (Pending manager approval).");
+        addAudit($conn, $currentUserID, "INSERT", "stock_release", "Created stock release #$releaseID (Completed).");
 
-        response(true, "Stock release #$releaseID submitted for manager approval.", ["ReleaseID" => $releaseID]);
+        response(true, "Stock release #$releaseID completed.", ["ReleaseID" => $releaseID]);
     }
 
     /* ------------------------------------------------------------
