@@ -1168,7 +1168,9 @@ function poProductOptions(selected) {
     return poProducts.map(p => `
         <option value="${p.ProductID}"
             ${String(p.ProductID) === String(selected) ? "selected" : ""}
-            data-price="${p.CostPrice ?? 0}">
+            data-price="${p.CostPrice ?? 0}"
+            data-max="${p.MaxStockLevel ?? 0}"
+            data-onhand="${p.OnHand ?? 0}">
             ${esc(p.ProductName)}${p.Barcode ? " — " + esc(p.Barcode) : ""}
             (stock: ${esc(p.OnHand ?? 0)})
         </option>
@@ -1188,8 +1190,13 @@ function poLineRow(line = {}) {
                 </select>
             </td>
             <td class="col-qty">
-                <input type="number" class="line-qty" min="1" step="1"
-                    value="${line.Quantity ?? 1}" oninput="recalcPO()">
+                <div class="qty-with-max">
+                    <input type="number" class="line-qty" min="1" step="1"
+                        value="${line.Quantity ?? 1}" oninput="recalcPO()">
+                    <button type="button" class="btn btn-outline btn-max"
+                        title="Order up to max stock level"
+                        onclick="setMaxQty('${rowId}')">Max</button>
+                </div>
             </td>
             <td class="col-price">
                 <input type="number" class="line-price" min="0" step="0.01"
@@ -1255,6 +1262,37 @@ function recalcPO() {
 
     const totalBox = document.getElementById("po-total");
     if (totalBox) totalBox.textContent = money(total);
+}
+
+function setMaxQty(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+
+    const select = row.querySelector(".line-product");
+    const option = select.options[select.selectedIndex];
+
+    if (!select.value || !option) {
+        showAlert("Select a product first.");
+        return;
+    }
+
+    const maxLevel = Number(option.getAttribute("data-max") || 0);
+    const onHand = Number(option.getAttribute("data-onhand") || 0);
+
+    if (maxLevel <= 0) {
+        showAlert("This product has no max stock level set. Ask the admin to set it.");
+        return;
+    }
+
+    const orderQty = maxLevel - onHand;
+
+    if (orderQty <= 0) {
+        showAlert(`Stock is already at or above the max level (${onHand} / ${maxLevel}).`);
+        return;
+    }
+
+    row.querySelector(".line-qty").value = orderQty;
+    recalcPO();
 }
 
 async function refreshSupplierOptionsFromSelectedProducts() {
