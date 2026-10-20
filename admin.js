@@ -334,7 +334,8 @@ const MODULES = {
             { name: "CategoryID", label: "Category", type: "select", optionsSource: "category" },
             { name: "UnitOfMeasureID", label: "Unit of Measure", type: "select", optionsSource: "uom" },
             { name: "CostPrice", label: "Cost Price", type: "number", hint: "Purchase cost per unit (e.g., 12.50)" },
-            { name: "MinStockLevel", label: "Minimum Stock Level", type: "number" },
+            { name: "MinStockLevel", label: "Minimum Stock Level", type: "number", half: true },
+            { name: "MaxStockLevel", label: "Maximum Stock Level", type: "number", half: true },
             { name: "BinID", label: "Bin Location", type: "select", optionsSource: "bin" }
         ],
         row: (r, mode = "list") => `
@@ -344,6 +345,7 @@ const MODULES = {
             <td>${esc(r.UnitSymbol || r.UnitName)}</td>
             <td class="num">${r.CostPrice != null && r.CostPrice !== "" ? "₱" + Number(r.CostPrice).toFixed(2) : "—"}</td>
             <td>${esc(r.MinStockLevel)}</td>
+            <td>${esc(r.MaxStockLevel)}</td>
             <td>${
                 r.AisleCode
                     ? `${esc(r.AisleCode)} / ${esc(r.ShelfCode)} / ${esc(r.BinCode)}`
@@ -868,12 +870,51 @@ async function openFormModal(moduleKey, id = null) {
         `;
 
     }).join("");
+
+    // Max Stock auto-suggest (Min × 3), product form only
+    if (moduleKey === "product") setupMaxStockSuggest(Boolean(id));
 }
 
 function closeFormModal() {
     document.getElementById("modal-overlay").classList.remove("open");
     currentModuleKey = null;
     currentEditId = null;
+}
+
+/* ============================================================
+   MAX STOCK AUTO-SUGGEST (Min × 3, still editable)
+============================================================ */
+
+function setupMaxStockSuggest(isEdit) {
+
+    const minEl = document.getElementById("field-MinStockLevel");
+    const maxEl = document.getElementById("field-MaxStockLevel");
+    if (!minEl || !maxEl) return;
+
+    const suggested = () => {
+        const m = Number(minEl.value);
+        return m > 0 ? m * 3 : 0;
+    };
+
+    // manual = the admin has edited Max, so don't overwrite it anymore
+    let manual = false;
+
+    if (isEdit) {
+        const curMax = Number(maxEl.value);
+        // If the saved Max differs from Min × 3, treat it as a manual value
+        manual = curMax > 0 && curMax !== suggested();
+        // Older products with no Max yet: fill in the suggestion
+        if (curMax <= 0 && suggested() > 0) maxEl.value = suggested();
+    }
+
+    maxEl.addEventListener("input", () => {
+        // If the admin clears the field, go back to auto mode
+        manual = maxEl.value.trim() !== "";
+    });
+
+    minEl.addEventListener("input", () => {
+        if (!manual) maxEl.value = suggested() > 0 ? suggested() : "";
+    });
 }
 
 async function saveRecord() {
@@ -912,6 +953,25 @@ async function saveRecord() {
             }
             payload.CostPrice = cp;
         }
+    }
+
+    // Validate Min / Max stock (product only)
+    if (module === MODULES.product) {
+        const min = Number(payload.MinStockLevel || 0);
+        let max = Number(payload.MaxStockLevel || 0);
+
+        if (isNaN(min) || min < 0 || isNaN(max) || max < 0) {
+            showErrorModal("Stock levels must be zero or higher.");
+            return;
+        }
+        if (max === 0 && min > 0) max = min * 3;   // fall back to Min × 3
+
+        if (max > 0 && max < min) {
+            showErrorModal("Maximum stock level cannot be lower than the minimum stock level.");
+            return;
+        }
+        payload.MinStockLevel = min;
+        payload.MaxStockLevel = max;
     }
 
     let result;
